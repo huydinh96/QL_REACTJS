@@ -4,7 +4,7 @@ import './App.css';
 import TaskForm from './component/TaskForm';
 import Control from './component/Control';
 import TaskList from './component/TaskList';
-
+import _ from 'lodash';
 class App extends Component {
     constructor(props) {
         super(props);
@@ -12,10 +12,17 @@ class App extends Component {
             tasks:[], // id: unique. name . status
             isDisplayForm: false, // mặc định là ẩn form
             taskEditing: null,
-            fillter: {
+            filter: {
               name: '',
               status: -1,
-            }
+            },
+            // sort:{
+            //   by: 'name',
+            //   value:1,
+            // }
+            sortBy:'name',
+            sortValue:1,
+            keyword:'',
         }
     }
     // no se dc goi gi component dc gan vao. khi reload trang
@@ -112,7 +119,10 @@ class App extends Component {
     onUpdateStatus = (id) =>{
       // console.log(id);
       var {tasks} = this.state;
-      var index = this.findIndex(id);
+      // var index = this.findIndex(id);
+      var index = _.findIndex(tasks,(task)=>{
+        return task.id === id;
+      })
       console.log(index);
       if(index !== -1){
         tasks[index].status = !tasks[index].status;
@@ -154,29 +164,79 @@ class App extends Component {
       });
       this.onShowForm();
     }
-    onFiller = (fillterName,fillterStatus) => {
+    onFillter = (fillterName,fillterStatus) => {
       // console.log(fillterName ,'-',fillterStatus);
       // kiểm tra kiểu dữ liệu
       // console.log(typeof fillerStatus);
       fillterStatus = parseInt(fillterStatus,10);
       this.setState({
-        fillter:{
+        filter:{
           name: fillterName.toLowerCase(),
-          name: fillterStatus
+          status: fillterStatus
         }
       })
     }
+    onSearch = (keyword) =>{
+      this.setState({
+        keyword: keyword
+      });
+    }
+    onSort = (sortBy,sortValue) => {
+      this.setState({
+        sortBy: sortBy,
+        sortValue:sortValue
+        // truyền ngược lại trong tk Control or lifecycle để check
+      })
+      // console.log(this.state);
+    }
   render() {
-      var {tasks, isDisplayForm, taskEditing, fillter} = this.state; // var tasks = this.state.tasks
-      console.log(fillter);
-      // if(fillter){
-      //   if(fillter.name){
-      //     tasks = tasks.fillter((task)=>{
-      //       // chuyển đổi thành kí tự thường sau đó gọi hàm indexOf coi có chứa fillter.name không sau đó cho bằng khác -1:
-      //       return task.name.toLowerCase().indexOf(fillter.name) !== -1;
-      //     })
-      //   }
-      // }
+      var {tasks, isDisplayForm, taskEditing, filter,keyword,sortBy,sortValue} = this.state; // var tasks = this.state.tasks
+      tasks = _.filter(tasks,(task)=>{
+        return task.name.toLowerCase().indexOf(keyword.toLowerCase()) !==-1;
+      })
+      if(filter){
+        if(filter.name){
+          tasks = tasks.filter((task)=>{
+            // chuyển đổi thành kí tự thường sau đó gọi hàm indexOf coi có chứa fillter.name không sau đó cho bằng khác -1:
+            return task.name.toLowerCase().indexOf(filter.name) !== -1;
+          })
+        }
+        tasks = tasks.filter((task)=>{
+          if(filter.status === -1){
+            return task;
+          }else{
+            return task.status === (filter.status === 1 ? true : false)
+          }
+        })
+        // if(filter.status){//dòng này kiểm tra khác null !== undefine khác 0
+        //   // chuyển kiểu trừ fasle sang kiểu 0 1
+        // }
+      }
+      if(keyword){
+        tasks = tasks.filter((task)=>{
+          // chuyển đổi thành kí tự thường sau đó gọi hàm indexOf coi có chứa fillter.name không sau đó cho bằng khác -1:
+          return task.name.toLowerCase().indexOf(filter.name) !== -1;
+        });
+      }
+      if(sortBy === 'name'){
+        tasks.sort((a,b)=>{
+          if(a.name > b.name){
+            return sortValue;
+          }
+          else if(a.name < b.name) return -sortValue;
+          else return 0;
+        });
+      }else{
+        tasks.sort((a,b)=>{
+          if(a.status > b.status){
+            return -sortValue;
+          }
+          else if(a.status < b.status) return sortValue;
+          else return 0;
+        });
+      }
+      // console.log(sortBy,'-',sortValue);
+      // console.log(filter);
       var elemTaskForm = isDisplayForm ?
           <TaskForm
             onCloseForm ={this.onCloseForm}
@@ -205,7 +265,7 @@ class App extends Component {
                 <button type="button" className="btn btn-danger" onClick={this.onGeneraterData}>
                     <span className="fa fa-plus mr-5"></span>Generate Data
                 </button>
-                <Control/>
+                <Control onSearch={this.onSearch } onSort={this.onSort} sortBy={sortBy} sortValue={sortValue}/>
                 <TaskList
                   tasks ={tasks}
                   onUpdateStatus={this.onUpdateStatus}

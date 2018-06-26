@@ -14,8 +14,7 @@ class TaskList extends Component {
     var name = target.name;
     var value = target.value;
     // truyền giá trị ra ngoài App
-    this.props.onFillter(name === 'fillterName' ? value : this.state.fillterName,
-                        name === 'fillterStatus' ? value : this.state.fillterStatus);
+    this.props.onFillter(name === 'fillterName' ? value : this.state.fillterName,name === 'fillterStatus' ? value : this.state.fillterStatus);
     this.setState({
       [name]: value
     });
@@ -50,10 +49,10 @@ class TaskList extends Component {
                             <tr>
                                 <td></td>
                                 <td>
-                                    <input type="text" className="form-control" name="fillerName" value={fillterName} onChange={this.onChange}/>
+                                    <input type="text" className="form-control" name="fillterName" value={fillterName} onChange={this.onChange}/>
                                 </td>
                                 <td>
-                                    <select className="form-control" name="fillerStatus" value={fillterStatus} onChange={this.onChange}>
+                                    <select className="form-control" name="fillterStatus" value={fillterStatus} onChange={this.onChange}>
                                         <option value="-1">Tất Cả</option>
                                         <option value="0">Ẩn</option>
                                         <option value="1">Kích Hoạt</option>
